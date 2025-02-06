@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shape Generator</title>
+</head>
+<body>
+    <h1>Generate a Shape</h1>
+    <form action="/generate_shape" method="POST">
+        <label for="shape_type">Shape Type:</label>
+        <select name="shape_type">
+            <option value="circle">Circle</option>
+            <option value="square">Square</option>
+            <option value="rectangle">Rectangle</option>
+            <option value="triangle">Triangle</option>
+            <option value="star">Star</option>
+        </select>
+    
+        <label for="color">Color:</label>
+        <input type="text" name="color" value="red">
+    
+        <label for="size">Size:</label>
+        <input type="number" name="size" value="100">
+    
+        <button type="submit">Generate Shape</button>
+    </form>
+    
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('shapeForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/generate_shape', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+            document.getElementById('result').innerHTML = `
+                <h3>Generated Shape:</h3>
+                <img src="/${data.file_path}" alt="Generated Shape">
+            `;
+        }
+    </script>
+</body>
+</html>
