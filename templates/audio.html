@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Effect Application</title>
+</head>
+<body>
+    <h1>Audio File Upload and Effect Application</h1>
+    
+    <!-- Form to upload the audio file and select an effect -->
+    <form action="/upload_audio" method="POST" enctype="multipart/form-data">
+        <div>
+            <h2>Step 1: Upload an Audio File</h2>
+            <label for="audio_file">Select an Audio File:</label>
+            <input type="file" name="audio_file" id="audio_file" accept="audio/*" required>
+        </div>
+
+        <div>
+            <h2>Step 2: Choose an Audio Effect</h2>
+            <label for="effect">Choose Effect:</label>
+            <select name="effect" id="effect">
+                <option value="speedup">Speed Up</option>
+                <option value="echo">Echo</option>
+                <option value="reverse">Reverse</option>
+                <option value="amplify">Amplify</option>
+                <option value="lowpass">Low-Pass Filter</option>
+                <option value="highpass">High-Pass Filter</option>
+            </select>
+        </div>
+        
+        <div>
+            <button type="submit">Upload and Apply Effect</button>
+        </div>
+    </form>
+
+    <!-- Section for showing processed audio -->
+    {% if filename %}
+        <h2>Step 3: Processed Audio</h2>
+        <p>Your audio has been processed successfully. You can listen to the result below:</p>
+        <audio controls>
+            <source src="{{ url_for('static', filename='audio/uploads/' + filename) }}" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        
+        <!-- Download button for the processed audio -->
+        <div>
+            <a href="{{ url_for('download_audio', filename=filename) }}" download>
+                <button type="button">Download Processed Audio</button>
+            </a>
+            
+        </div>
+    {% endif %}
+
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-scale=1, initial-scale=1.0">
+    <title>Interactive Drawing Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #drawingCanvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Draw Shapes on the Canvas</h1>
+    <canvas id="drawingCanvas" width="800" height="600"></canvas>
+    <br>
+
+    <label for="shapeType">Shape:</label>
+    <select id="shapeType">
+        <option value="circle">Circle</option>
+        <option value="square">Square</option>
+        <option value="rectangle">Rectangle</option>
+        <option value="triangle">Triangle</option>
+    </select>
+
+    <label for="color">Color:</label>
+    <input type="color" id="color" value="#ffffff">
+
+    <label for="size">Size:</label>
+    <input type="number" id="size" value="50" min="10" max="200">
+
+    <button id="submitDrawing">Submit Drawing</button>
+    <br>
+    <p id="successMessage" style="color: green; font-weight: bold; display: none;">Image has been successfully saved!</p>
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        let shapes = [];
+        let selectedShape = null; // Shape currently selected for dragging
+        let offsetX = 0, offsetY = 0; // Offsets for dragging
+
+        // Function to draw shapes
+        function drawShapes() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+            shapes.forEach(shape => {
+                if (shape.type === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(shape.x, shape.y, shape.size, 0, Math.PI * 2);
+                    ctx.fillStyle = shape.color;
+                    ctx.fill();
+                } else if (shape.type === 'square') {
+                    ctx.fillStyle = shape.color;
+                    ctx.fillRect(shape.x - shape.size / 2, shape.y - shape.size / 2, shape.size, shape.size);
+                } else if (shape.type === 'rectangle') {
+                    ctx.fillStyle = shape.color;
+                    ctx.fillRect(shape.x - shape.size / 2, shape.y - shape.size / 2, shape.size * 2, shape.size);
+                } else if (shape.type === 'triangle') {
+                    ctx.beginPath();
+                    ctx.moveTo(shape.x, shape.y - shape.size);
+                    ctx.lineTo(shape.x - shape.size, shape.y + shape.size);
+                    ctx.lineTo(shape.x + shape.size, shape.y + shape.size);
+                    ctx.closePath();
+                    ctx.fillStyle = shape.color;
+                    ctx.fill();
+                }
+            });
+        }
+
+        // Start drawing shapes on mousedown
+        canvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            const shapeType = document.getElementById('shapeType').value;
+            const color = document.getElementById('color').value;
+            const size = parseInt(document.getElementById('size').value);
+            const x = e.offsetX;
+            const y = e.offsetY;
+
+            // Check if the user clicked on an existing shape to start dragging
+            selectedShape = shapes.find(shape => {
+                return isPointInsideShape(x, y, shape);
+            });
+
+            // If no shape was selected, draw a new shape
+            if (!selectedShape) {
+                if (shapeType === 'circle') {
+                    shapes.push({ type: 'circle', x, y, size, color });
+                } else if (shapeType === 'square') {
+                    shapes.push({ type: 'square', x, y, size, color });
+                } else if (shapeType === 'rectangle') {
+                    shapes.push({ type: 'rectangle', x, y, size, color });
+                } else if (shapeType === 'triangle') {
+                    shapes.push({ type: 'triangle', x, y, size, color });
+                }
+            } else {
+                // Set the offset for dragging
+                offsetX = x - selectedShape.x;
+                offsetY = y - selectedShape.y;
+            }
+
+            drawShapes();
+        });
+
+        // Track mouse movement for dragging
+        canvas.addEventListener('mousemove', (e) => {
+            if (drawing && selectedShape) {
+                const x = e.offsetX;
+                const y = e.offsetY;
+
+                // Update the shape position when dragging
+                selectedShape.x = x - offsetX;
+                selectedShape.y = y - offsetY;
+
+                drawShapes();
+            }
+        });
+
+        // End drawing when the mouse is released
+        canvas.addEventListener('mouseup', () => {
+            drawing = false;
+            selectedShape = null; // Stop dragging
+        });
+
+        // Check if the point (x, y) is inside the shape
+        function isPointInsideShape(x, y, shape) {
+            if (shape.type === 'circle') {
+                const distance = Math.sqrt(Math.pow(x - shape.x, 2) + Math.pow(y - shape.y, 2));
+                return distance <= shape.size;
+            } else if (shape.type === 'square') {
+                return x >= shape.x - shape.size / 2 && x <= shape.x + shape.size / 2 && y >= shape.y - shape.size / 2 && y <= shape.y + shape.size / 2;
+            } else if (shape.type === 'rectangle') {
+                return x >= shape.x - shape.size / 2 && x <= shape.x + shape.size / 2 * 2 && y >= shape.y - shape.size / 2 && y <= shape.y + shape.size / 2;
+            } else if (shape.type === 'triangle') {
+                // Check if point is inside a triangle (this is a rough approximation)
+                const base = shape.size * 2;
+                return x >= shape.x - shape.size && x <= shape.x + shape.size && y >= shape.y - shape.size && y <= shape.y + shape.size;
+            }
+            return false;
+        }
+
+        // Submit drawing and send it to the server
+        document.getElementById('submitDrawing').addEventListener('click', () => {
+    fetch('/draw_dyna', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({shapes, color: document.getElementById('color').value})
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Afficher l'image générée après soumission
+        document.getElementById('generatedImage').src = data.image_url;
+
+        // Afficher un message de succès
+        const successMessage = document.getElementById('successMessage');
+        successMessage.style.display = 'block';  // Afficher le message de succès
+        successMessage.textContent = data.message;  // Modifier le texte du message
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
+
+
+
+        // Initial draw
+        drawShapes();
+    </script>
+</body>
+</html>

@@ -15,6 +15,11 @@
             height: auto;
             margin-top: 20px;
         }
+        .images-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
         select, button {
             margin: 10px;
             padding: 10px;
@@ -24,7 +29,7 @@
 </head>
 <body>
     <h1>Image Manipulation Tool</h1>
-    <form action="/upload" method="post" enctype="multipart/form-data">
+    <form action="/upload" method="POST" enctype="multipart/form-data">
         <input type="file" name="file" accept=".png, .jpg, .jpeg" required>
         <select name="filter">
             <option value="none">No Filter</option>
@@ -36,52 +41,18 @@
         <button type="submit">Upload and Apply Filter</button>
     </form>
 
-    {% if filename %}
-        <h2>Processed Image:</h2>
-        <img src="{{ url_for('static', filename='images/uploads/' + filename) }}" alt="Processed Image">
-    {% endif %}
-        <h2>Upload Audio and Apply Effect</h2>
-        <form action="/process_audio" method="POST" enctype="multipart/form-data">
-            <label for="audio_file">Select Audio File:</label>
-            <input type="file" name="audio_file" id="audio_file" required><br><br>
-    
-            <label for="effect">Select Effect:</label>
-            <select name="effect" id="effect">
-                <option value="speed_up">Speed Up</option>
-                <option value="reverb">Add Reverb</option>
-                <option value="overlay">Overlay</option>
-            </select><br><br>
-    
-            <div id="overlay_input" style="display:none;">
-                <label for="overlay_file">Select Overlay Audio File:</label>
-                <input type="file" name="overlay_file" id="overlay_file"><br><br>
+    <div class="images-container">
+        {% if filename %}
+            <div>
+                <h2>Original Image:</h2>
+                <img src="{{ url_for('static', filename='images/uploads/' + filename) }}" alt="Original Image">
             </div>
-    
-            <button type="submit">Submit</button>
-        </form>
-    
-        <div>
-            {% if audio_path %}
-                <h2>Processed Audio:</h2>
-                <audio controls>
-                    <source src="{{ url_for('static', filename='audio/uploads/' + audio_path) }}" type="audio/wav">
-                </audio>
-            {% endif %}
-        </div>
-    
-        <script>
-            // Show overlay input field only if "Overlay" is selected
-            document.getElementById("effect").addEventListener("change", function() {
-                var overlayInput = document.getElementById("overlay_input");
-                if (this.value === "overlay") {
-                    overlayInput.style.display = "block";
-                } else {
-                    overlayInput.style.display = "none";
-                }
-            });
-        </script>
-    
-    <a href="/visualization">View Data Visualization</a>
-    <a href="/generate_shape">Interactive Shapes Canvas</a>
+
+            <div>
+                <h2>Processed Image:</h2>
+                <img src="{{ url_for('static', filename='images/uploads/' + 'processed_' + filename) }}" alt="Processed Image">
+            </div>
+        {% endif %}
+    </div>
 </body>
 </html>
