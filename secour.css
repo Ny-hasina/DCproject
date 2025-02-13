@@ -1,0 +1,194 @@
+/* --- 1. Fond galaxie noir/bleu avec dégradé visible --- */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #2c3e50, #34495e, #1a1a1a, #4b79a1); /* Dégradé noir, bleu foncé, bleu plus clair */
+    background-size: 400% 400%; /* Étirement du dégradé pour donner plus de mouvement */
+    animation: galaxyAnim 20s ease infinite; /* Animation douce du fond */
+    color: #fff; /* Texte en blanc pour contraster */
+    text-align: center;
+    padding: 100px 20px;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animation du fond avec dégradé qui se déplace lentement */
+@keyframes galaxyAnim {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* --- 2. Titre dynamique en blanc uniquement --- */
+header h1 {
+    font-size: 4rem;
+    color: #fff; /* Titre en blanc uniquement */
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); /* Légère ombre pour faire ressortir le titre */
+    animation: fadeInTitle 2s ease-out, glowEffect 3s infinite alternate, moveTitle 10s linear infinite;
+}
+
+/* Texte sous le titre avec animation d'apparition */
+header p {
+    font-size: 1.2rem;
+    color: #fff;
+    margin-top: 15px;
+    opacity: 0.8;
+    animation: fadeInText 3.5s ease-out forwards;
+}
+
+/* Animation d'apparition du titre */
+@keyframes fadeInTitle {
+    0% {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation d'apparition du texte */
+@keyframes fadeInText {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation légère du halo lumineux autour du titre */
+@keyframes glowEffect {
+    0% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        text-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* Animation du mouvement latéral du titre */
+@keyframes moveTitle {
+    0% {
+        transform: translateX(-50px);
+    }
+    50% {
+        transform: translateX(50px);
+    }
+    100% {
+        transform: translateX(-50px);
+    }
+}
+
+/* --- 3. Style des liens avec animation et plus de visibilité au survol --- */
+.links ul {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.links ul li {
+    margin: 20px;
+}
+
+/* Style des liens avec ombres et survol lumineux */
+.links a {
+    font-size: 1.6rem;
+    text-decoration: none;
+    color: #fff;
+    background: rgba(41, 128, 185, 0.8); /* Bleu clair */
+    padding: 20px 40px;
+    border-radius: 50px;
+    display: inline-block;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease-in-out;
+    transform-origin: center center;
+    opacity: 0;
+    animation: linkAppear 2s ease-out forwards;
+}
+
+/* Animation des liens sans changement de couleur au survol, mais avec un effet lumineux */
+.links a:hover {
+    background: rgba(41, 128, 185, 0.8); /* La couleur du fond ne change pas */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+    transform: scale(1.05);
+    animation: hoverEffect 0.3s ease-in-out, glowEffectOnHover 0.5s ease-in-out forwards;
+    opacity: 1; /* Les boutons ne disparaissent plus au survol */
+}
+
+/* Animation d'apparition des liens */
+@keyframes linkAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation du survol des liens */
+@keyframes hoverEffect {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1.05);
+    }
+}
+
+/* Ajout d'un effet lumineux au survol du lien */
+@keyframes glowEffectOnHover {
+    0% {
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+    100% {
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    }
+}
+
+/* --- 4. Effet de particules flottantes douces --- */
+body::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: floatParticles 8s ease-in-out infinite;
+}
+
+@keyframes floatParticles {
+    0% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+    }
+    100% {
+        transform: translateY(0) rotate(360deg);
+    }
+}

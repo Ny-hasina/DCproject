@@ -1,0 +1,368 @@
+/* --- 1. Fond galaxie noir/bleu avec dégradé animé --- */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #2c3e50, #34495e, #1a1a1a, #4b79a1); /* Dégradé dynamique */
+    background-size: 400% 400%; /* Étirement du dégradé pour donner plus de mouvement */
+    animation: galaxyAnim 20s ease infinite; /* Animation douce du fond */
+    color: #fff; /* Texte en blanc pour contraster */
+    text-align: center;
+    padding: 50px 20px; /* Espacement suffisant autour du contenu */
+    height: 100vh; /* Remplir toute la hauteur de la fenêtre */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animation du fond avec dégradé */
+@keyframes galaxyAnim {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* --- 2. Titre dynamique en blanc uniquement --- */
+header h1 {
+    font-size: 4rem;
+    color: #fff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    animation: fadeInTitle 2s ease-out, glowEffect 3s infinite alternate, moveTitle 10s linear infinite;
+}
+
+/* Animation d'apparition du titre */
+@keyframes fadeInTitle {
+    0% {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation d'apparition du texte */
+@keyframes fadeInText {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation légère du halo lumineux autour du titre */
+@keyframes glowEffect {
+    0% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        text-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* Animation du mouvement latéral du titre */
+@keyframes moveTitle {
+    0% {
+        transform: translateX(-50px);
+    }
+    50% {
+        transform: translateX(50px);
+    }
+    100% {
+        transform: translateX(-50px);
+    }
+}
+
+/* --- 3. Mise en forme des images (responsive et centrées) --- */
+img {
+    max-width: 80%;
+    height: auto;
+    margin-top: 20px;
+}
+
+/* --- 4. Conteneur d'images avec flexbox pour la mise en forme dynamique --- */
+.images-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Espacement entre les images */
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+/* --- 5. Style des champs d'entrée et boutons (sélecteurs et boutons stylisés) --- */
+select, button {
+    margin: 10px;
+    padding: 12px 20px; /* Espacement des boutons et sélecteurs */
+    font-size: 16px; /* Taille uniforme du texte */
+    background-color: #4b79a1; /* Fond bleu-gris */
+    color: white; /* Texte en blanc */
+    border: none; /* Pas de bordure */
+    border-radius: 10px; /* Bords arrondis */
+    cursor: pointer; /* Curseur en forme de main */
+    transition: all 0.3s ease; /* Effet de transition pour interactivité */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Ombre légère pour l'effet de profondeur */
+}
+
+/* --- 6. Effet au survol des boutons --- */
+select:hover, button:hover {
+    background-color: #3498db; /* Changement de couleur au survol */
+    transform: scale(1.05); /* Légère augmentation de la taille */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Ombre renforcée au survol */
+}
+
+/* --- 7. Style des liens avec animation de survol et opacité --- */
+.links ul {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.links ul li {
+    margin: 20px;
+}
+
+.links a {
+    font-size: 1.6rem;
+    text-decoration: none;
+    color: #fff;
+    background: rgba(41, 128, 185, 0.8); /* Bleu clair */
+    padding: 20px 40px;
+    border-radius: 50px;
+    display: inline-block;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease-in-out;
+    transform-origin: center center;
+    opacity: 0;
+    animation: linkAppear 2s ease-out forwards;
+}
+
+/* Animation d'apparition des liens */
+@keyframes linkAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation du survol des liens */
+.links a:hover {
+    background: rgba(41, 128, 185, 0.8);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+    transform: scale(1.05);
+    animation: hoverEffect 0.3s ease-in-out, glowEffectOnHover 0.5s ease-in-out forwards;
+    opacity: 1;
+}
+
+/* Animation du survol */
+@keyframes hoverEffect {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1.05);
+    }
+}
+
+/* Effet lumineux au survol */
+@keyframes glowEffectOnHover {
+    0% {
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+    100% {
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    }
+}
+
+/* --- 8. Effet de particules flottantes douces pour un look dynamique --- */
+body::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: floatParticles 8s ease-in-out infinite;
+}
+
+/* Animation des particules flottantes */
+@keyframes floatParticles {
+    0% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+    }
+    100% {
+        transform: translateY(0) rotate(360deg);
+    }
+}/* --- 1. Style de base pour les champs d'entrée et de sélection --- */
+
+/* Style du champ de sélection de fichier (pour l'image) */
+input[type="file"] {
+    background-color: #4b79a1; /* Fond bleu-gris */
+    color: #fff; /* Texte blanc */
+    font-family: 'Poppins', sans-serif; /* Police moderne */
+    font-size: 1rem; /* Taille du texte */
+    padding: 15px 30px; /* Padding généreux */
+    border: none; /* Pas de bordure */
+    border-radius: 10px; /* Bords arrondis */
+    cursor: pointer; /* Curseur de type main */
+    transition: all 0.3s ease; /* Transition douce pour les interactions */
+    margin-top: 20px; /* Un peu d'espace entre le champ et les éléments voisins */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Ombre légère pour un effet de profondeur */
+}
+/* --- 2. Effet de survol pour les champs d'entrée et de sélection --- */
+
+/* Lorsque l'utilisateur survole le champ de sélection de fichier */
+input[type="file"]:hover {
+    background-color: #2980b9; /* Fond plus foncé au survol */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); /* Ombre plus prononcée */
+    transform: scale(1.05); /* Agrandir légèrement au survol */
+    opacity: 1; /* Assurer que l'opacité ne diminue pas */
+}
+
+/* Lorsque l'utilisateur survole le champ de sélection de filtre */
+select:hover {
+    background-color: #2980b9; /* Fond plus foncé au survol */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); /* Ombre plus prononcée */
+    transform: scale(1.05); /* Agrandir légèrement au survol */
+    opacity: 1; /* Assurer que l'opacité ne diminue pas */
+}
+
+/* --- 3. Effet de pression pour les champs d'entrée et de sélection --- */
+input[type="file"]:active, select:active {
+    transform: scale(0.98); /* Réduire légèrement la taille au clic */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); /* Ombre plus légère pour l'effet de pression */
+}
+
+/* --- 4. Animation d'apparition des champs --- */
+input[type="file"], select {
+    opacity: 0;
+    animation: fadeInInput 1.5s ease-out forwards; /* Animation d'apparition */
+}
+
+/* --- 5. Animation pour l'apparition des champs d'entrée et de sélection --- */
+@keyframes fadeInInput {
+    0% {
+        opacity: 0;
+        transform: translateY(20px); /* Les champs apparaissent depuis le bas */
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0); /* Se positionnent normalement */
+    }
+}
+
+/* --- 6. Ajout d'une animation subtile au survol des éléments --- */
+@keyframes hoverGlowEffect {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+}
+
+/* --- 7. Ajout d'un effet lumineux subtil au survol des éléments --- */
+input[type="file"]:hover, select:hover {
+    animation: hoverGlowEffect 0.8s infinite alternate; /* Animation lumineuse */
+}
+
+
+
+/* --- 1. Style de la barre des tâches en haut de la page --- */ 
+.taskbar {
+    position: fixed; /* La barre reste en haut même quand on fait défiler la page */
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Fond légèrement plus transparent pour une touche subtile */
+    z-index: 1000; /* Assurer que la barre reste au-dessus du contenu */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Ombre légère pour une finition douce */
+    padding: 8px 0; /* Réduire la taille de la barre */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Ajout d'une bordure discrète */
+}
+
+/* Style des éléments de la liste */
+.taskbar ul {
+    list-style-type: none;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.taskbar ul li {
+    margin: 0 15px; /* Espacement plus petit entre les éléments */
+}
+
+/* Style des liens */
+.taskbar ul li a {
+    font-size: 1.2rem; /* Réduire la taille de la police pour un effet plus discret */
+    text-decoration: none;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1); /* Un léger fond pour les éléments */
+    padding: 10px 20px;
+    border-radius: 30px; /* Des bords arrondis mais moins prononcés */
+    display: inline-block;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Ombre subtile */
+}
+
+/* Effet de survol des liens dans la barre des tâches */
+.taskbar ul li a:hover {
+    background: rgba(255, 255, 255, 0.2); /* Un léger éclaircissement */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Ombre plus marquée au survol */
+    transform: scale(1.05);
+    animation: hoverEffect 0.3s ease-in-out, glowEffectOnHover 0.5s ease-in-out forwards;
+}
+
+/* Animation d'effet au survol des liens */
+@keyframes hoverEffect {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1.05);
+    }
+}
+
+/* Animation de l'effet lumineux au survol des liens */
+@keyframes glowEffectOnHover {
+    0% {
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    }
+}

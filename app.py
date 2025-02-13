@@ -23,7 +23,7 @@ import sys
 import pygame
 import base64
 import math
-
+import re
 
 # Création de l'application Flask
 app = Flask(__name__)
@@ -310,139 +310,111 @@ def create_visualization(data):
     plt.savefig('static/images/temperature_plot.png')  # Save the plot
     plt.close()
 
-@app.route('/Audio_manip')
-def Audio_manip():
+
+app.config['UPLOAD_FOLDER_AUDIO'] = 'static/uploads_audio'  # Nouveau nom
+app.config['ALLOWED_EXTENSIONS'] = {'wav', 'mp3'}
+
+# Ensure the uploads folder exists
+if not os.path.exists(app.config['UPLOAD_FOLDER_AUDIO']):
+    os.makedirs(app.config['UPLOAD_FOLDER_AUDIO'])
+    print(f"Created uploads folder at: {app.config['UPLOAD_FOLDER_AUDIO']}")
+
+def allowed_file(filename):
+    """Check if the file has an allowed extension."""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+def normalize_filename(filename):
+    """Normalize the filename by removing special characters and spaces."""
+    # Remplace les espaces et les caractères spéciaux par des underscores
+    normalized = re.sub(r'[^\w\.-]', '_', filename)
+    return normalized
+
+def apply_effect(audio, effect):
+    """Apply the selected effect to the audio."""
+    if effect == 'speed_up':
+        return audio.speedup(playback_speed=1.5)
+    elif effect == 'slow_down':
+        return audio._spawn(audio.raw_data, overrides={
+            "frame_rate": int(audio.frame_rate * 0.75)
+        }).set_frame_rate(audio.frame_rate)
+    elif effect == 'fade_in':
+        return audio.fade_in(2000)  # 2-second fade-in
+    elif effect == 'fade_out':
+        return audio.fade_out(2000)  # 2-second fade-out
+    else:
+        return audio  # No effect applied
+
+@app.route('/audio', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        # Check if a file was uploaded
+        if 'file' not in request.files:
+            print("No file part in the request.")
+            return redirect(request.url)
+
+        file = request.files['file']
+        effect = request.form.get('effect')  # Get the selected effect
+        print(f"Selected effect: {effect}")
+
+        if file.filename == '':
+            print("No file selected.")
+            return redirect(request.url)
+
+        if file:  # Désactivez allowed_file pour le moment
+            # Normalize the filename
+            normalized_filename = normalize_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER_AUDIO'], normalized_filename)
+            file.save(file_path)
+            print(f"File saved at: {file_path}")  # Log pour vérifier le chemin du fichier
+
+            # Vérifiez si le fichier existe après sauvegarde
+            if os.path.exists(file_path):
+                print("File successfully saved.")
+            else:
+                print("File was not saved.")
+
+            # Load the audio file using PyDub
+            audio = AudioSegment.from_file(file_path)
+            print("Audio file loaded successfully.")
+
+            # Apply the selected effect
+            processed_audio = apply_effect(audio, effect)
+            print("Effect applied successfully.")
+
+            # Save the processed audio
+            processed_file_path = os.path.join(app.config['UPLOAD_FOLDER_AUDIO'], 'processed_' + normalized_filename)
+            processed_audio.export(processed_file_path, format="mp3")
+            print(f"Processed file saved at: {processed_file_path}")
+
+            # Vérifiez si le fichier traité existe
+            if os.path.exists(processed_file_path):
+                print("Processed file successfully saved.")
+            else:
+                print("Processed file was not saved.")
+
+            # Render the template with both audio files
+            return render_template('audio.html', 
+                                 original_audio=normalized_filename, 
+                                 processed_audio='processed_' + normalized_filename)
+
     return render_template('audio.html')
 
-# Configuration pour les fichiers audio
-UPLOAD_FOLDER = 'static/audio/uploads'
-ALLOWED_EXTENSIONS = {'mp3', 'wav', 'ogg'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# S'assurer que le dossier de téléchargement existe
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-# Fonction pour vérifier les extensions de fichier autorisées
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-@app.route('/download_audio/<filename>')
-def download_audio(filename):
-    # Renvoie le fichier depuis le dossier spécifié
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
-
-
-# Route pour télécharger et manipuler l'audio
-@app.route('/upload_audio', methods=['POST'])
-def upload_audio():
-    if 'audio_file' not in request.files:
-        return "No file part"
-    
-    file = request.files['audio_file']
-    if file.filename == '':
-        return "No selected file"
-    
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        
-        # Vérifier si l'effet est bien sélectionné
-        effect = request.form.get('effect')
-        if not effect:
-            return "No effect selected"  # Ajouter un message d'erreur si aucun effet n'est sélectionné
-
-        # Charger le fichier audio avec PyDub
-        sound = AudioSegment.from_file(filepath)
-        
-        # Appliquer l'effet en fonction du choix de l'utilisateur
-        if effect == 'speedup':
-            processed_sound = change_speed(sound, 1.5)  # Accélérer l'audio
-        elif effect == 'echo':
-            processed_sound = add_echo(sound, delay_ms=500, decay=0.6)  # Ajouter un écho
-        elif effect == 'reverse':
-            processed_sound = reverse_audio(sound)  # Inverser l'audio
-        elif effect == 'amplify':
-            processed_sound = amplify_audio(sound, factor=2.0)  # Amplifier l'audio
-        elif effect == 'lowpass':
-            processed_sound = apply_lowpass_filter(sound, cutoff_freq=1000)  # Filtre passe-bas
-        elif effect == 'highpass':
-            processed_sound = apply_highpass_filter(sound, cutoff_freq=2000)  # Filtre passe-haut
-        else:
-            processed_sound = sound  # Aucun effet, on garde le son original
-
-        # Sauvegarder le fichier modifié
-        processed_filename = f"processed_{filename}"
-        processed_filepath = os.path.join(app.config['UPLOAD_FOLDER'], processed_filename)
-        processed_sound.export(processed_filepath, format="mp3")
-
-        # Renvoie à la page HTML avec le fichier modifié pour écouter
-        return render_template('audio.html', filename=processed_filename)
+@app.route('/uploads_au/<filename>')
+def uploaded_file(filename):
+    """Serve uploaded files."""
+    file_path = os.path.join(app.config['UPLOAD_FOLDER_AUDIO'], filename)
+    if os.path.exists(file_path):
+        print(f"Serving file: {file_path}")  # Log pour vérifier que le fichier est servi
+        return send_from_directory(os.path.abspath(app.config['UPLOAD_FOLDER_AUDIO']), filename)
+    else:
+        print(f"File not found: {file_path}")  # Log si le fichier n'existe pas
+        return "File not found", 404
 
 
 
-def apply_highpass_filter(sound, cutoff_freq=2000):
-    """
-    Appliquer un filtre passe-haut à l'audio
-    :param sound: l'audio à traiter
-    :param cutoff_freq: fréquence de coupure du filtre (en Hz)
-    :return: audio filtré
-    """
-    return sound.high_pass_filter(cutoff_freq)
-
-def apply_lowpass_filter(sound, cutoff_freq=1000):
-    """
-    Appliquer un filtre passe-bas à l'audio
-    :param sound: l'audio à traiter
-    :param cutoff_freq: fréquence de coupure du filtre (en Hz)
-    :return: audio filtré
-    """
-    return sound.low_pass_filter(cutoff_freq)
-
-
-# Fonction pour modifier la vitesse de l'audio
-def change_speed(sound, speed=1.0):
-    return sound.speedup(playback_speed=speed)
-
-# Fonction pour ajouter un écho à l'audio
-def add_echo(sound, delay_ms=500, decay=0.6):
-    # Créer une version retardée du son
-    echo = sound - 10  # Réduire le volume de l'écho (décadence)
-    echo = echo.fade_in(100).fade_out(100)  # Optionnel: fondu en entrée et sortie
-    
-    # Retarder de quelques millisecondes
-    echo = echo[:len(sound)]  # S'assurer que la longueur reste la même que l'originale
-    return sound.overlay(echo, position=delay_ms)
-
-def reverse_audio(sound):
-    """
-    Appliquer l'effet inverse à l'audio
-    :param sound: l'audio à traiter
-    :return: audio inversé
-    """
-    return sound.reverse()
-
-def amplify_audio(sound, factor=2.0):
-    """
-    Augmenter le volume de l'audio
-    :param sound: l'audio à traiter
-    :param factor: facteur d'amplification (par exemple, 2.0 pour doubler le volume)
-    :return: audio amplifié
-    """
-    return sound + factor  # Augmente le volume
 
 
 
-UPLOAD_FOLDER = 'static/uploads_st'
-OUTPUT_FOLDER = 'static/output_st'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
-
-# Helper function to check allowed file extensions
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Load pre-trained VGG19 model
 vgg = models.vgg19(pretrained=True).features.to(torch.device("cuda" if torch.cuda.is_available() else "cpu")).eval()
@@ -655,6 +627,16 @@ def draw_dyna():
         'message': 'Image has been successfully saved!'
     })
 
+UPLOAD_FOLDER = 'static/uploads_st'
+OUTPUT_FOLDER = 'static/output_st'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
+
+# Helper function to check allowed file extensions
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 

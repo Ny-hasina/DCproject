@@ -3,54 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Effect Application</title>
+    <title>Audio Processor</title>
+    <!-- Ajoutez Font Awesome pour le spinner -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Style pour le spinner */
+        .loading-spinner {
+            display: none; /* Masqué par défaut */
+            font-size: 24px;
+            color: #007bff;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Audio File Upload and Effect Application</h1>
-    
-    <!-- Form to upload the audio file and select an effect -->
-    <form action="/upload_audio" method="POST" enctype="multipart/form-data">
-        <div>
-            <h2>Step 1: Upload an Audio File</h2>
-            <label for="audio_file">Select an Audio File:</label>
-            <input type="file" name="audio_file" id="audio_file" accept="audio/*" required>
-        </div>
-
-        <div>
-            <h2>Step 2: Choose an Audio Effect</h2>
-            <label for="effect">Choose Effect:</label>
-            <select name="effect" id="effect">
-                <option value="speedup">Speed Up</option>
-                <option value="echo">Echo</option>
-                <option value="reverse">Reverse</option>
-                <option value="amplify">Amplify</option>
-                <option value="lowpass">Low-Pass Filter</option>
-                <option value="highpass">High-Pass Filter</option>
-            </select>
-        </div>
-        
-        <div>
-            <button type="submit">Upload and Apply Effect</button>
-        </div>
+    <h1>Audio Processor</h1>
+    <form id="audio-form" action="/audio" method="POST" enctype="multipart/form-data">
+        <label for="file">Upload Audio File:</label>
+        <input type="file" name="file" id="file" accept=".wav,.mp3" required>
+        <br><br>
+        <label for="effect">Select Effect:</label>
+        <select name="effect" id="effect" required>
+            <option value="speed_up">Speed Up (1.5x)</option>
+            <option value="slow_down">Slow Down (0.75x)</option>
+            <option value="fade_in">Fade In (2 seconds)</option>
+            <option value="fade_out">Fade Out (2 seconds)</option>
+        </select>
+        <br><br>
+        <button type="submit">Process Audio</button>
     </form>
 
-    <!-- Section for showing processed audio -->
-    {% if filename %}
-        <h2>Step 3: Processed Audio</h2>
-        <p>Your audio has been processed successfully. You can listen to the result below:</p>
+    <!-- Spinner de chargement -->
+    <div id="loading-spinner" class="loading-spinner">
+        <i class="fas fa-spinner fa-spin"></i> Processing...
+    </div>
+
+    <!-- Section pour afficher les audios -->
+    {% if original_audio and processed_audio %}
+        <h2>Original Audio</h2>
         <audio controls>
-            <source src="{{ url_for('static', filename='audio/uploads/' + filename) }}" type="audio/mpeg">
+            <source src="{{ url_for('uploaded_file', filename=original_audio) }}" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
-        
-        <!-- Download button for the processed audio -->
-        <div>
-            <a href="{{ url_for('download_audio', filename=filename) }}" download>
-                <button type="button">Download Processed Audio</button>
-            </a>
-            
-        </div>
+
+        <h2>Processed Audio</h2>
+        <audio controls>
+            <source src="{{ url_for('uploaded_file', filename=processed_audio) }}" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
     {% endif %}
 
+    <!-- JavaScript pour gérer le spinner -->
+    <script>
+        document.getElementById('audio-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêcher la soumission normale du formulaire
+    
+            // Afficher le spinner
+            document.getElementById('loading-spinner').style.display = 'block';
+    
+            // Récupérer les données du formulaire
+            const formData = new FormData(this);
+    
+            // Envoyer les données via AJAX
+            fetch('/audio', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Masquer le spinner
+                document.getElementById('loading-spinner').style.display = 'none';
+    
+                // Mettre à jour la page avec la réponse
+                document.body.innerHTML = data;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loading-spinner').style.display = 'none';
+            });
+        });
+    </script>
 </body>
 </html>
