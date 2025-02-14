@@ -12,3 +12,4 @@ torchvision==0.14.1
 random==1.0
 pygame==2.1.2
 base64==1.0.0
+You need also to use an old version of spython like "python 3.9"
