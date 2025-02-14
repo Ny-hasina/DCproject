@@ -15,14 +15,14 @@
             animation: galaxyAnim 20s ease infinite;
             color: #fff;
             text-align: center;
-            padding: 50px 20px;
-            height: 100vh;
+            padding: 100px 20px 50px; /* Ajout de padding en haut pour la barre des tâches */
+            min-height: 100vh; /* Utiliser min-height pour permettre le défilement */
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             position: relative;
-            overflow: hidden;
+            overflow: auto; /* Permettre le défilement */
         }
 
         /* Animation du fond avec dégradé */
@@ -99,7 +99,7 @@
             gap: 10px; /* Espacement entre les lecteurs audio */
             width: 100%;
             max-width: 500px; /* Limite la largeur maximale */
-            margin: 0 auto; /* Centrer le conteneur */
+            margin: 20px auto; /* Centrer le conteneur avec une marge */
         }
 
         audio {
