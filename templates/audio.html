@@ -7,17 +7,210 @@
     <!-- Ajoutez Font Awesome pour le spinner -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Style pour le spinner */
+        /* --- 1. Fond galaxie noir/bleu avec dégradé animé --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #34495e, #1a1a1a, #4b79a1);
+            background-size: 400% 400%;
+            animation: galaxyAnim 20s ease infinite;
+            color: #fff;
+            text-align: center;
+            padding: 50px 20px;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Animation du fond avec dégradé */
+        @keyframes galaxyAnim {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- 2. Titre dynamique en blanc uniquement --- */
+        h1 {
+            font-size: 4rem;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            animation: fadeInTitle 2s ease-out, glowEffect 3s infinite alternate, moveTitle 10s linear infinite;
+            margin-left: 50px; /* Décalage vers la droite */
+        }
+
+        /* Animation d'apparition du titre */
+        @keyframes fadeInTitle {
+            0% { opacity: 0; transform: translateY(-50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Animation légère du halo lumineux autour du titre */
+        @keyframes glowEffect {
+            0% { text-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+            100% { text-shadow: 0 0 25px rgba(255, 255, 255, 0.4); }
+        }
+
+        /* Animation du mouvement latéral du titre */
+        @keyframes moveTitle {
+            0% { transform: translateX(-50px); }
+            50% { transform: translateX(50px); }
+            100% { transform: translateX(-50px); }
+        }
+
+        /* --- 3. Style des champs d'entrée et boutons --- */
+        input[type="file"], select, button {
+            margin: 10px;
+            padding: 12px 20px;
+            font-size: 16px;
+            background-color: #4b79a1;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-left: 50px; /* Décalage vers la droite */
+        }
+
+        /* Effet au survol des boutons */
+        input[type="file"]:hover, select:hover, button:hover {
+            background-color: #3498db;
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- 4. Style du spinner de chargement --- */
         .loading-spinner {
-            display: none; /* Masqué par défaut */
+            display: none;
             font-size: 24px;
             color: #007bff;
             margin-top: 20px;
+            margin-left: 50px; /* Décalage vers la droite */
+        }
+
+        /* --- 5. Style des audios --- */
+        .audio-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px; /* Espacement entre les lecteurs audio */
+            width: 100%;
+            max-width: 500px; /* Limite la largeur maximale */
+            margin: 0 auto; /* Centrer le conteneur */
+        }
+
+        audio {
+            width: 100%; /* Prend toute la largeur du conteneur */
+            max-width: 300px; /* Largeur maximale pour les lecteurs audio */
+            margin-top: 10px; /* Réduire la marge */
+        }
+
+        /* --- 6. Style des liens --- */
+        a {
+            text-decoration: none;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- 7. Style de la barre des tâches en haut de la page --- */ 
+        .taskbar {
+            position: fixed; /* La barre reste en haut même quand on fait défiler la page */
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Fond légèrement plus transparent pour une touche subtile */
+            z-index: 1000; /* Assurer que la barre reste au-dessus du contenu */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Ombre légère pour une finition douce */
+            padding: 8px 0; /* Réduire la taille de la barre */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Ajout d'une bordure discrète */
+        }
+
+        /* Style des éléments de la liste */
+        .taskbar ul {
+            list-style-type: none;
+            display: flex;
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .taskbar ul li {
+            margin: 0 15px; /* Espacement plus petit entre les éléments */
+        }
+
+        /* Style des liens */
+        .taskbar ul li a {
+            font-size: 1.2rem; /* Réduire la taille de la police pour un effet plus discret */
+            text-decoration: none;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1); /* Un léger fond pour les éléments */
+            padding: 10px 20px;
+            border-radius: 30px; /* Des bords arrondis mais moins prononcés */
+            display: inline-block;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Ombre subtile */
+        }
+
+        /* Effet de survol des liens dans la barre des tâches */
+        .taskbar ul li a:hover {
+            background: rgba(255, 255, 255, 0.2); /* Un léger éclaircissement */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Ombre plus marquée au survol */
+            transform: scale(1.05);
+            animation: hoverEffect 0.3s ease-in-out, glowEffectOnHover 0.5s ease-in-out forwards;
+        }
+
+        /* Animation d'effet au survol des liens */
+        @keyframes hoverEffect {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1.05); }
+        }
+
+        /* Animation de l'effet lumineux au survol des liens */
+        @keyframes glowEffectOnHover {
+            0% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
+            100% { text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+        }
+
+        /* --- 8. Style de la phrase d'accueil --- */
+        .welcome-message {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-top: 20px;
+            animation: fadeInText 2s ease-out;
+        }
+
+        /* Animation d'apparition du texte */
+        @keyframes fadeInText {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
-    <h1>Audio Processor</h1>
+    <!-- Barre des tâches -->
+    <div class="taskbar">
+        <ul>
+            <li><a href="/">🏠 Back to Home</a></li>
+            <li><a href="/Image_manip"> &#x1F304; Image</a></li>
+            <li><a href="/dynamic_shape">💫 Dynamic Shapes</a></li>
+            <li><a href="/visualization">🔭 Data</a></li>
+            <li><a href="/gallery">🌟 Galery</a></li>
+            <li><a href="/text_generation">✨ Text Generation</a></li>
+        </ul>
+    </div>
+
+    <h1>Audio Processor</h1> 
+    <div class="welcome-message">
+        Welcome! You can upload and manipulate audio files as you wish.
+    </div>
     <form id="audio-form" action="/audio" method="POST" enctype="multipart/form-data">
         <label for="file">Upload Audio File:</label>
         <input type="file" name="file" id="file" accept=".wav,.mp3" required>
@@ -40,30 +233,32 @@
 
     <!-- Section pour afficher les audios -->
     {% if original_audio and processed_audio %}
-        <h2>Original Audio</h2>
-        <audio controls>
-            <source src="{{ url_for('uploaded_file', filename=original_audio) }}" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
+        <div class="audio-container">
+            <h2>Original Audio</h2>
+            <audio controls>
+                <source src="{{ url_for('uploaded_file', filename=original_audio) }}" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
 
-        <h2>Processed Audio</h2>
-        <audio controls>
-            <source src="{{ url_for('uploaded_file', filename=processed_audio) }}" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
+            <h2>Processed Audio</h2>
+            <audio controls>
+                <source src="{{ url_for('uploaded_file', filename=processed_audio) }}" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
     {% endif %}
 
     <!-- JavaScript pour gérer le spinner -->
     <script>
         document.getElementById('audio-form').addEventListener('submit', function(event) {
             event.preventDefault(); // Empêcher la soumission normale du formulaire
-    
+
             // Afficher le spinner
             document.getElementById('loading-spinner').style.display = 'block';
-    
+
             // Récupérer les données du formulaire
             const formData = new FormData(this);
-    
+
             // Envoyer les données via AJAX
             fetch('/audio', {
                 method: 'POST',
@@ -73,7 +268,7 @@
             .then(data => {
                 // Masquer le spinner
                 document.getElementById('loading-spinner').style.display = 'none';
-    
+
                 // Mettre à jour la page avec la réponse
                 document.body.innerHTML = data;
             })

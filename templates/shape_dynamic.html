@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-scale=1, initial-scale=1.0">
@@ -8,9 +9,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Ajoutez la police Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/shape.css') }}">
+</head>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/shape.css') }}"> 
 </head>
 <body>
+    <!-- Barre des tâches -->
+<div class="taskbar">
+    <ul>
+        <li><a href="/">🏠 Back to Home</a></li>
+        <li><a href="/Image_manip"> &#x1F304; Image</a></li>
+        <li><a href="/audio">🎶 Audio</a></li>
+        <li><a href="/visualization">🔭 Data</a></li>
+        <li><a href="/gallery">🌟 Galery</a></li>
+        <li><a href="/text_generation">✨ Text Generation</a></li>
+    </ul>
+</div>
     <h1>Draw Shapes on the Canvas</h1>
     <canvas id="drawingCanvas" width="800" height="600"></canvas>
     <br>
@@ -31,8 +46,9 @@
 
     <button id="submitDrawing">Download Drawing</button>
     <br>
-    <p id="successMessage" style="color: green; font-weight: bold; display: none;">Image has been successfully saved!</p>
-    <script>
+    <p id="successMessage" style="color: green; font-weight: bold; display: none;">Image has been successfully saved!
+    </p>
+    <p id="successMessage" style="color: green; font-weight: bold; display: none;">Image has been successfully saved!</p>    <script>
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
         let drawing = false;
@@ -140,6 +156,27 @@
 
         // Submit drawing and send it to the server
         document.getElementById('submitDrawing').addEventListener('click', () => {
+            fetch('/draw_dyna', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ shapes, color: document.getElementById('color').value })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Afficher l'image générée après soumission
+                    document.getElementById('generatedImage').src = data.image_url;
+
+                    // Afficher un message de succès
+                    const successMessage = document.getElementById('successMessage');
+                    successMessage.style.display = 'block';  // Afficher le message de succès
+                    successMessage.textContent = data.message;  // Modifier le texte du message
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
     fetch('/draw_dyna', {
         method: 'POST',
         headers: {
@@ -160,12 +197,10 @@
     .catch(error => {
         console.error('Error:', error);
     });
-});
-
-
-
         // Initial draw
         drawShapes();
     </script>
 </body>
+
+</html>
 </html>

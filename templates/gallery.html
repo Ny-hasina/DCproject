@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="fr">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #34495e, #1a1a1a, #4b79a1);
+            background-size: 400% 400%;
+            animation: galaxyAnim 20s ease infinite;
+            color: #fff;
+            text-align: center;
+            padding: 100px 10px;
+            min-height: 100vh; /* Utilisez min-height au lieu de height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative;
+            overflow: auto; /* Autoriser le défilement */
+            scroll-behavior: smooth; /* Défilement fluide */
+        }
+
+        @keyframes galaxyAnim {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        h1 {
+            font-size: 4rem;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            animation: fadeInTitle 3s ease-out, glowEffect 3s infinite alternate, moveTitle 10s linear infinite;
+            position: relative;
+            z-index: 100;
+        }
+
+
+        .image-container {
+            position: relative;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .image-container img {
+            width: 200px;
+            border-radius: 5px;
+            transition: transform 0.2s;
+        }
+
+        .image-container:hover img {
+            transform: scale(1.05);
+        }
+
+        .delete-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            padding: 5px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            font-size: 16px;
+        }
+
+        .image-container:hover .delete-icon {
+            display: block;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 30px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 30px;
+            color: white;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .prev {
+            left: 10px;
+        }
+
+        .next {
+            right: 10px;
+        }
+
+        .delete-icon:hover {
+            background: rgba(255, 0, 0, 0.7);
+        }
+        
+/* --- 1. Style de la barre des tâches en haut de la page --- */ 
+.taskbar {
+    position: fixed; /* La barre reste en haut même quand on fait défiler la page */
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Fond légèrement plus transparent pour une touche subtile */
+    z-index: 1000; /* Assurer que la barre reste au-dessus du contenu */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Ombre légère pour une finition douce */
+    padding: 8px 0; /* Réduire la taille de la barre */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Ajout d'une bordure discrète */
+}
+
+/* Style des éléments de la liste */
+.taskbar ul {
+    list-style-type: none;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.taskbar ul li {
+    margin: 0 15px; /* Espacement plus petit entre les éléments */
+}
+
+/* Style des liens */
+.taskbar ul li a {
+    font-size: 1.2rem; /* Réduire la taille de la police pour un effet plus discret */
+    text-decoration: none;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1); /* Un léger fond pour les éléments */
+    padding: 10px 20px;
+    border-radius: 30px; /* Des bords arrondis mais moins prononcés */
+    display: inline-block;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Ombre subtile */
+}
+
+/* Effet de survol des liens dans la barre des tâches */
+.taskbar ul li a:hover {
+    background: rgba(255, 255, 255, 0.2); /* Un léger éclaircissement */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Ombre plus marquée au survol */
+    transform: scale(1.05);
+    animation: hoverEffect 0.3s ease-in-out, glowEffectOnHover 0.5s ease-in-out forwards;
+}
+
+/* Animation d'effet au survol des liens */
+@keyframes hoverEffect {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1.05);
+    }
+}
+
+/* Animation de l'effet lumineux au survol des liens */
+@keyframes glowEffectOnHover {
+    0% {
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    }
+}
+
+    </style>
+</head>
+
+<body>
+    <div class="taskbar">
+        <ul>
+            <li><a href="/Image_manip"> &#x1F304; Image</a></li>
+            <li><a href="/audio">🎶 Audio</a></li>
+            <li><a href="/visualization">🔭 Data</a></li>
+            <li><a href="/gallery">🌟 Galery</a></li>
+            <li><a href="/style_trans">✨ Style Transfer</a></li>
+            <li><a href="/text_generation">✨ Text Generation</a></li>
+            <li><a href="/dynamic_shape">💫 Shapes</a></li>
+        </ul>
+    </div>
+    <h1>Art gallery</h1>
+
+    <form action="/gallery" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Add image</button>
+    </form>
+
+    <h2>All images</h2>
+    <div style="display: flex; flex-wrap: wrap;">
+        {% for image in images %}
+        <div class="image-container">
+            <img src="{{ url_for('static', filename=image) }}" alt="Image" onclick="openModal({{ loop.index0 }})">
+            <button class="delete-icon" onclick="deleteImage('{{ image }}')">&#128465;</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Modale pour agrandir et défiler les images -->
+    <div id="modal" class="modal" onclick="closeModal()">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <button class="nav-button prev" onclick="prevImage(event);">&#10094;</button>
+        <img id="modal-img">
+        <button class="nav-button next" onclick="nextImage(event);">&#10095;</button>
+    </div>
+
+    <script>
+        let images = [];
+        let currentIndex = 0;
+
+        function deleteImage(imageName) {
+            if (confirm("Supprimer cette image ?")) {
+                fetch('/delete_image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ 'image_name': imageName })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert("Impossible de supprimer l'image.");
+                        }
+                    });
+            }
+        }
+
+        function openModal(index) {
+            currentIndex = index;
+            updateModalImage();
+            document.getElementById("modal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+
+        function nextImage(event) {
+            event.stopPropagation();
+            currentIndex = (currentIndex + 1) % images.length;
+            updateModalImage();
+        }
+
+        function prevImage(event) {
+            event.stopPropagation();
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            updateModalImage();
+        }
+
+        function updateModalImage() {
+            if (images.length > 0) {
+                document.getElementById("modal-img").src = images[currentIndex];
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            images = [
+                {% for image in images %}
+                "{{ url_for('static', filename=image) }}",
+            {% endfor %}
+            ];
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (document.getElementById("modal").style.display === "flex") {
+                if (event.key === "ArrowRight") {
+                    nextImage(event);
+                } else if (event.key === "ArrowLeft") {
+                    prevImage(event);
+                } else if (event.key === "Escape") {
+                    closeModal();
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

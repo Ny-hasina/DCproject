@@ -24,6 +24,9 @@ import pygame
 import base64
 import math
 import re
+import seaborn as sns
+from transformers import pipeline,GPT2LMHeadModel, GPT2Tokenizer
+from transformers import BlipProcessor, BlipForConditionalGeneration
 
 # Création de l'application Flask
 app = Flask(__name__)
@@ -286,29 +289,91 @@ def cartoonify_filter(image):
     cartoon = cv2.bitwise_and(color, color, mask=edges)
     return cartoon
 
-#plot part
+
+
+# Chemin vers le dossier des images
+IMAGE_FOLDER = 'static/images/uploads'
+if not os.path.exists(IMAGE_FOLDER):
+    os.makedirs(IMAGE_FOLDER)
+
+# Charger les données
+def load_data():
+    try:
+        data = pd.read_csv('data/temperatures.csv')
+        # Convertir la colonne 'date' en datetime
+        data['date'] = pd.to_datetime(data['date'], errors='coerce')  # Gestion des erreurs de format
+        return data
+    except Exception as e:
+        print(f"Erreur lors du chargement des données : {e}")
+        return pd.DataFrame()  # Retourne un DataFrame vide en cas d'erreur
+
+# Créer les visualisations
+def create_visualizations(data):
+    try:
+        sns.set(style="darkgrid")
+        
+        # Plot 1: Line Plot with Artistic Styling
+        plt.figure(figsize=(10, 6))
+        sns.lineplot(x=data['date'], y=data['temperature'], marker='o', linestyle='-', color='purple')
+        plt.title('Temperature Trends Over Time', fontsize=14, fontweight='bold', color='darkblue')
+        plt.xlabel('Date', fontsize=12)
+        plt.ylabel('Temperature (°C)', fontsize=12)
+        plt.xticks(rotation=45)
+        plot1_path = os.path.join(IMAGE_FOLDER, 'plot1.png')
+        plt.savefig(plot1_path)
+        plt.close()
+        
+        # Plot 2: Heatmap
+        plt.figure(figsize=(8, 6))
+        data['day'] = data['date'].dt.day
+        data['month'] = data['date'].dt.month
+        pivot_table = data.pivot(index='month', columns='day', values='temperature')
+        sns.heatmap(pivot_table, cmap='coolwarm', annot=True, fmt='.1f')
+        plt.title('Temperature Heatmap')
+        plot2_path = os.path.join(IMAGE_FOLDER, 'plot2.png')
+        plt.savefig(plot2_path)
+        plt.close()
+        
+        # Plot 3: Artistic Swarmplot
+        plt.figure(figsize=(10, 6))
+        sns.swarmplot(x=data['date'].dt.strftime('%Y-%m-%d'), y=data['temperature'], palette='inferno')
+        plt.title('Temperature Variations', fontsize=14)
+        plt.xlabel('Date')
+        plt.ylabel('Temperature (°C)')
+        plt.xticks(rotation=45)
+        plot3_path = os.path.join(IMAGE_FOLDER, 'plot3.png')
+        plt.savefig(plot3_path)
+        plt.close()
+        
+        return plot1_path, plot2_path, plot3_path
+    except Exception as e:
+        print(f"Erreur lors de la création des visualisations : {e}")
+        return None, None, None
+
+# Route pour afficher les visualisations
 @app.route('/visualization')
 def visualization():
     data = load_data()
-    create_visualization(data)
-    return render_template('visualization.html')
+    if data.empty:
+        return render_template('error.html', message="Erreur lors du chargement des données.")
+    
+    plot1_path, plot2_path, plot3_path = create_visualizations(data)
+    if not plot1_path or not plot2_path or not plot3_path:
+        return render_template('error.html', message="Erreur lors de la création des graphiques.")
+    
+    return render_template('visualization.html', 
+                           plot1=plot1_path, 
+                           plot2=plot2_path, 
+                           plot3=plot3_path)
 
-
-# Load the dataset
-def load_data():
-    data = pd.read_csv('data/temperatures.csv')
-    return data
-
-# Create a visualization
-def create_visualization(data):
-    plt.figure(figsize=(10, 6))
-    plt.plot(data['date'], data['temperature'], marker='o', color='b', linestyle='-')
-    plt.title('Daily Temperatures')
-    plt.xlabel('Date')
-    plt.ylabel('Temperature (°C)')
-    plt.grid(True)
-    plt.savefig('static/images/temperature_plot.png')  # Save the plot
-    plt.close()
+# Route pour afficher le dataset
+@app.route('/view_dataset')
+def view_dataset():
+    data = load_data()
+    if data.empty:
+        return render_template('error.html', message="Erreur lors du chargement des données.")
+    
+    return render_template('dataset.html', tables=[data.to_html(classes='data')], titles=['Dataset'])
 
 
 app.config['UPLOAD_FOLDER_AUDIO'] = 'static/uploads_audio'  # Nouveau nom
@@ -413,158 +478,10 @@ def uploaded_file(filename):
 
 
 
-
-
-
-# Load pre-trained VGG19 model
-vgg = models.vgg19(pretrained=True).features.to(torch.device("cuda" if torch.cuda.is_available() else "cpu")).eval()
-
-# Image loading and transformation
-def image_loader(image_path, max_size=512, shape=None):
-    image = Image.open(image_path).convert('RGB')
-
-    if max_size:
-        size = max(image.size)
-        scale = max_size / float(size)
-        new_size = tuple([int(x * scale) for x in image.size])
-        image = image.resize(new_size, Image.LANCZOS)
-
-    if shape:
-        image = image.resize(shape, Image.LANCZOS)
-
-    preprocessor = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Lambda(lambda x: x.unsqueeze(0)),
-    ])
-
-    image = preprocessor(image)
-    return image.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-
-def get_features(image, model, layers=None):
-    layers = layers or {'0': 'conv1_1', '5': 'conv2_1', '10': 'conv3_1', '19': 'conv4_1', '21': 'conv4_2', '28': 'conv5_1'}
-    features = {}
-    x = image
-    for name, layer in model._modules.items():
-        x = layer(x)
-        if name in layers:
-            features[layers[name]] = x
-    return features
-
-def content_loss(target, content):
-    return torch.nn.functional.mse_loss(target, content)
-
-def gram_matrix(input):
-    batch_size, channels, height, width = input.size()
-    features = input.view(batch_size * channels, height * width)
-    G = torch.mm(features, features.t())
-    return G.div(batch_size * channels * height * width)
-
-def style_loss(target, style):
-    G_target = gram_matrix(target)
-    G_style = gram_matrix(style)
-    return torch.nn.functional.mse_loss(G_target, G_style)
-
-# Neural Style Transfer function
-def neural_style_transfer(content_image_path, style_image_path, output_image_path, num_iterations=500):
-    content_image = image_loader(content_image_path).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-    style_image = image_loader(style_image_path, shape=content_image.shape[-2:]).to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-
-    content_features = get_features(content_image, vgg)
-    style_features = get_features(style_image, vgg)
-
-    target = content_image.clone().requires_grad_(True)
-
-    optimizer = optim.LBFGS([target])
-
-    for i in range(num_iterations):
-        def closure():
-            target.data.clamp_(0, 1)
-            optimizer.zero_grad()
-
-            target_features = get_features(target, vgg)
-
-            c_loss = content_loss(target_features['conv4_2'], content_features['conv4_2'])
-            s_loss = 0
-            for layer in style_features:
-                s_loss += style_loss(target_features[layer], style_features[layer])
-
-            total_loss = c_loss + 1e6 * s_loss
-            total_loss.backward(retain_graph=True)  # Conserver le graphe pour la rétropropagation suivante
-            return total_loss
-        
-        optimizer.step(closure)
-
-    target.data.clamp_(0, 1)
-    final_img = target.cpu().clone()
-    final_img_pil = transforms.ToPILImage()(final_img.squeeze(0))
-    final_img_pil.save(output_image_path)
-
-
-# Ajoute un message de progression dans ton template HTML
-@app.route('/style_trans', methods=['GET', 'POST'])
-def style_trans():
-    if request.method == 'POST':
-        # Commencer le traitement en arrière-plan
-        content_file = request.files['file']
-        style_file = request.files['style_file']
-
-        if content_file and allowed_file(content_file.filename) and style_file and allowed_file(style_file.filename):
-            content_filename = os.path.join(app.config['UPLOAD_FOLDER'], content_file.filename)
-            style_filename = os.path.join(app.config['UPLOAD_FOLDER'], style_file.filename)
-
-            content_file.save(content_filename)
-            style_file.save(style_filename)
-
-            output_filename = os.path.join(app.config['OUTPUT_FOLDER'], 'styled_image.jpg')
-
-            # Appeler la fonction de traitement
-            neural_style_transfer(content_filename, style_filename, output_filename)
-            
-            # Retourner la page avec l'image finale traitée
-            return render_template('style_trans.html', filename='output_st/styled_image.jpg', message="Image traitée avec succès!")
-
-    return render_template('style_trans.html')
-
-
-@app.route('/upload_st', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files or 'style_file' not in request.files:
-        return redirect(request.url)
-    
-    content_file = request.files['file']
-    style_file = request.files['style_file']
-
-    if content_file and allowed_file(content_file.filename) and style_file and allowed_file(style_file.filename):
-        content_filename = os.path.join(app.config['UPLOAD_FOLDER'], content_file.filename)
-        style_filename = os.path.join(app.config['UPLOAD_FOLDER'], style_file.filename)
-
-        content_file.save(content_filename)
-        style_file.save(style_filename)
-
-        output_filename = os.path.join(app.config['OUTPUT_FOLDER'], 'styled_image.jpg')
-
-        # Apply Neural Style Transfer
-        neural_style_transfer(content_filename, style_filename, output_filename)
-
-        return render_template('style_trans.html', filename='output_st/styled_image.jpg')
-    
-    return redirect(request.url)
-
-@app.route('/uploads_st/<filename>')
-def send_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-@app.route('/output_st/<filename>')
-def send_output(filename):
-    return send_from_directory(app.config['OUTPUT_FOLDER'], filename)
-  
-
-
-
 # Dossier pour enregistrer l'image générée
-OUTPUT_FOLDER = 'static/drawings'
-if not os.path.exists(OUTPUT_FOLDER):
-    os.makedirs(OUTPUT_FOLDER)
+OUTPUT_FOLDER_IM = 'static/images/uploads'
+if not os.path.exists(OUTPUT_FOLDER_IM):
+    os.makedirs(OUTPUT_FOLDER_IM)
 
 # Pygame initialization
 pygame.init()
@@ -598,7 +515,7 @@ def draw_canvas(shapes, color, file_name="drawing.png"):
             pygame.draw.polygon(screen, color, points)
 
     # Enregistrer l'image dans le dossier OUTPUT_FOLDER
-    image_path = os.path.join(OUTPUT_FOLDER, file_name)
+    image_path = os.path.join(OUTPUT_FOLDER_IM, file_name)
     pygame.image.save(screen, image_path)
     return image_path
 
@@ -616,7 +533,7 @@ def draw_dyna():
     color = data['color']
 
     # Créer un nom unique pour l'image (ex: drawing_1.png, drawing_2.png, etc.)
-    file_name = f"drawing_{len(os.listdir(OUTPUT_FOLDER)) + 1}.png"
+    file_name = f"drawing_{len(os.listdir(OUTPUT_FOLDER_IM)) + 1}.png"
 
     # Dessiner l'image et la sauvegarder dans le dossier spécifié
     image_path = draw_canvas(shapes, color, file_name)
@@ -627,9 +544,6 @@ def draw_dyna():
         'message': 'Image has been successfully saved!'
     })
 
-UPLOAD_FOLDER = 'static/uploads_st'
-OUTPUT_FOLDER = 'static/output_st'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
@@ -638,7 +552,117 @@ app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/gallery', methods=['GET', 'POST'])
+def gallery():
+    image_folder = os.path.join(app.static_folder, 'images/uploads')
 
+    # Vérifier si le dossier existe
+    if not os.path.exists(image_folder):
+        os.makedirs(image_folder)
+
+    # Liste des images disponibles
+    images = [f'images/uploads/{img}' for img in os.listdir(image_folder) if img.endswith(('png', 'jpg', 'jpeg'))]
+
+    if request.method == 'POST':
+        # Ajouter une image
+        if 'file' in request.files:
+            file = request.files['file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(image_folder, filename)
+                file.save(filepath)
+                return redirect(url_for('gallery'))  # Recharger la page après l'upload
+
+    return render_template('gallery.html', images=images)
+
+@app.route('/delete_image', methods=['POST'])
+def delete_image():
+    image_name = request.form.get('image_name')  # Nom de l'image à supprimer
+    image_path = os.path.join(app.static_folder, image_name)
+
+    if os.path.exists(image_path):
+        os.remove(image_path)
+        return jsonify({'message': 'Image supprimée avec succès', 'success': True})
+    return jsonify({'message': 'Image introuvable', 'success': False})
+
+#text generation
+@app.route('/text_generation')
+def text_generation():
+    return render_template('text_generation.html')
+
+@app.route('/get_images')
+def get_images():
+    image_folder = os.path.join(app.static_folder, 'images/uploads')
+    images = [url_for('static', filename=f'images/uploads/{img}') for img in os.listdir(image_folder) if img.endswith(('png', 'jpg', 'jpeg'))]
+    return jsonify({'images': images})
+# Load BLIP model (for generating image descriptions)
+blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-large")
+blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large")
+
+# Load GPT-2 model (for text generation)
+model_name = "gpt2"
+gpt2_model = GPT2LMHeadModel.from_pretrained(model_name)
+tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+gpt2_model.eval()
+
+def generate_image_description(image_path):
+    """Uses BLIP to generate a caption for an image."""
+    image = Image.open(image_path).convert("RGB")
+    inputs = blip_processor(image, return_tensors="pt")
+    out = blip_model.generate(**inputs)
+    return blip_processor.decode(out[0], skip_special_tokens=True)
+
+def generate_gpt2_text(prompt):
+    """Uses GPT-2 to generate text based on a given prompt, avoiding repetitions."""
+    inputs = tokenizer.encode(prompt, return_tensors="pt")
+
+    outputs = gpt2_model.generate(
+        inputs, 
+        max_length=150, 
+        num_return_sequences=1, 
+        no_repeat_ngram_size=3,  # Prevents repetitive n-grams
+        top_p=0.9,               # Nucleus sampling to avoid generic outputs
+        temperature=0.7,         # Controls randomness (lower = more focused)
+        repetition_penalty=1.2,  # Penalizes token repetition
+        do_sample=True           # Ensures sampling instead of greedy decoding
+    )
+
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+@app.route('/generate_text', methods=['POST'])
+def generate_text():
+    data = request.json
+    image_name = data['image_name']
+    text_type = data['text_type']
+
+    # Construct the full path to the image
+    image_path = os.path.join("static/images/uploads", image_name.split("/")[-1])
+
+    # Generate an image description using BLIP
+    image_description = generate_image_description(image_path)
+
+    # Construct a prompt based on text type
+    if text_type == 'poetry':
+        prompt = f" {image_description}"
+    elif text_type == 'caption':
+        prompt = f"{image_description}"
+    elif text_type == 'description':
+        prompt = f"{image_description}"
+
+    # Generate text using GPT-2
+    generated_text = generate_gpt2_text(prompt)
+
+    return jsonify({'generated_text': generated_text})
+
+#dataset route
+@app.route('/')
+def dataset():
+    file_path = os.path.join('data', 'temperatures.csv')  # Correctement défini
+    df = pd.read_csv(file_path)  # Chargement du CSV
+    data = df.to_dict(orient='records')  # Convertir en liste de dictionnaires
+    
+      
+    return render_template('dataset.html', dataset=data)
 
 if __name__ == '__main__':
     # Vérifier si les dossiers existent et les créer si nécessaire

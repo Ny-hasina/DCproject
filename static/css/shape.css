@@ -13,7 +13,7 @@ body {
     align-items: center;
     flex-direction: column;
     position: relative;
-    overflow: hidden;
+    overflow: auto; /* Autoriser le défilement */
 }
 
 /* Animation du fond avec dégradé qui se déplace lentement */
@@ -101,9 +101,9 @@ h1 {
 
 /* --- 4. Style du canvas --- */
 #drawingCanvas {
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.071);
     margin-top: 20px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.815);
     border-radius: 10px;
     width: 100%;
     max-width: 800px; /* Augmentation de la largeur maximale */
@@ -141,4 +141,77 @@ body::before {
     100% {
         transform: translateY(0) rotate(360deg);
     }
+}
+/* --- 7. Style de la barre des tâches en haut de la page --- */ 
+.taskbar {
+    position: fixed; /* La barre reste en haut même quand on fait défiler la page */
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Fond légèrement plus transparent pour une touche subtile */
+    z-index: 1000; /* Assurer que la barre reste au-dessus du contenu */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Ombre légère pour une finition douce */
+    padding: 8px 0; /* Réduire la taille de la barre */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Ajout d'une bordure discrète */
+}
+
+/* Style des éléments de la liste */
+.taskbar ul {
+    list-style-type: none;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.taskbar ul li {
+    margin: 0 15px; /* Espacement plus petit entre les éléments */
+}
+
+/* Style des liens */
+.taskbar ul li a {
+    font-size: 1.2rem; /* Réduire la taille de la police pour un effet plus discret */
+    text-decoration: none;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1); /* Un léger fond pour les éléments */
+    padding: 10px 20px;
+    border-radius: 30px; /* Des bords arrondis mais moins prononcés */
+    display: inline-block;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Ombre subtile */
+}
+
+/* Effet de survol des liens dans la barre des tâches */
+.taskbar ul li a:hover {
+    background: rgba(255, 255, 255, 0.2); /* Un léger éclaircissement */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Ombre plus marquée au survol */
+    transform: scale(1.05);
+    animation: hoverEffect 0.3s ease-in-out, glowEffectOnHover 0.5s ease-in-out forwards;
+}
+
+/* Animation d'effet au survol des liens */
+@keyframes hoverEffect {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1.05); }
+}
+
+/* Animation de l'effet lumineux au survol des liens */
+@keyframes glowEffectOnHover {
+    0% { text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
+    100% { text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+}
+
+/* --- 8. Style de la phrase d'accueil --- */
+.welcome-message {
+    font-size: 1.2rem;
+    color: #fff;
+    margin-top: 20px;
+    animation: fadeInText 2s ease-out;
+}
+
+/* Animation d'apparition du texte */
+@keyframes fadeInText {
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
